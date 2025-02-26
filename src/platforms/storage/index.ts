@@ -15,10 +15,14 @@ import {
   isUrlFromAwsS3,
 } from './aws-s3';
 import {
+  sqliteList,
+} from './sqlite';
+import {
   CURRENT_STORAGE,
   HAS_AWS_S3_STORAGE,
   HAS_VERCEL_BLOB_STORAGE,
   HAS_CLOUDFLARE_R2_STORAGE,
+  HAS_SQLITE_BLOB_STORAGE,
 } from '@/app/config';
 import { generateNanoid } from '@/utility/nanoid';
 import {
@@ -42,6 +46,7 @@ export type StorageListResponse = {
 export type StorageType =
   'vercel-blob' |
   'aws-s3' |
+  'sqlite' |
   'cloudflare-r2';
 
 export const labelForStorage = (type: StorageType): string => {
@@ -49,6 +54,7 @@ export const labelForStorage = (type: StorageType): string => {
   case 'vercel-blob': return 'Vercel Blob';
   case 'cloudflare-r2': return 'Cloudflare R2';
   case 'aws-s3': return 'AWS S3';
+  case 'sqlite': return 'SQLite';
   }
 };
 
@@ -94,6 +100,8 @@ export const fileNameForStorageUrl = (url: string) => {
     return url.replace(`${CLOUDFLARE_R2_BASE_URL_PUBLIC}/`, '');
   case 'aws-s3':
     return url.replace(`${AWS_S3_BASE_URL}/`, '');
+  case 'sqlite':
+    return url;
   }
 };
 
@@ -173,6 +181,8 @@ export const copyFile = (
       destinationFileName,
       false,
     );
+  case 'sqlite':
+    return Promise.resolve('?');
   }
 };
 
@@ -184,6 +194,8 @@ export const deleteFile = (url: string) => {
     return cloudflareR2Delete(getFileNameFromStorageUrl(url));
   case 'aws-s3':
     return awsS3Delete(getFileNameFromStorageUrl(url));
+  case 'sqlite':
+    return '';    
   }
 };
 
@@ -210,6 +222,10 @@ const getStorageUrlsForPrefix = async (prefix = '') => {
   }
   if (HAS_CLOUDFLARE_R2_STORAGE) {
     urls.push(...await cloudflareR2List(prefix)
+      .catch(() => []));
+  }
+  if (HAS_SQLITE_BLOB_STORAGE) {
+    urls.push(...await sqliteList(prefix)
       .catch(() => []));
   }
 

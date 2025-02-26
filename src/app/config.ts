@@ -119,6 +119,9 @@ export const HAS_REDIS_STORAGE =
 export const HAS_VERCEL_BLOB_STORAGE =
   Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 
+export const HAS_SQLITE_BLOB_STORAGE =
+  Boolean(process.env.SQLITE_URL_LINK);
+
 // STORAGE: Cloudflare R2
 // Includes separate check for client-side usage, i.e., url construction
 export const HAS_CLOUDFLARE_R2_STORAGE_CLIENT =
